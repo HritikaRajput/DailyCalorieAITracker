@@ -7,7 +7,9 @@ const { MealRepository } = require('./repositories/meal.repository');
 const { MealService } = require('./services/meal.service');
 const { createUserRouter } = require('./routes/users');
 const { createMealRouter } = require('./routes/meals');
+const { createAuthRouter }  = require('./routes/auth');
 const { apiLimiter } = require('./middleware/rateLimiter');
+const { requireAuth } = require('./middleware/auth');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./middleware/logger');
 
@@ -41,9 +43,12 @@ const userRepository = new UserRepository(query);
 const mealRepository = new MealRepository(query);
 const mealService    = new MealService(mealRepository);
 
-// Routes — all versioned at /api/v1 from day 1
-app.use('/api/v1/users', createUserRouter(userRepository));
-app.use('/api/v1/meals', createMealRouter(mealService, mealRepository));
+// Public auth routes (no token required)
+app.use('/api/v1/auth', createAuthRouter(userRepository));
+
+// Protected routes — require valid JWT
+app.use('/api/v1/users', requireAuth, createUserRouter(userRepository));
+app.use('/api/v1/meals', requireAuth, createMealRouter(mealService, mealRepository));
 
 // 404 handler
 app.use((req, res) => {

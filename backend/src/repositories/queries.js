@@ -1,9 +1,10 @@
 const USER_QUERIES = {
-  FIND_BY_ID: 'SELECT * FROM users WHERE id = $1',
-  FIND_ALL: 'SELECT * FROM users ORDER BY created_at DESC',
+  FIND_BY_ID:    'SELECT * FROM users WHERE id = $1',
+  FIND_BY_EMAIL: 'SELECT * FROM users WHERE email = $1',
+  FIND_ALL:      'SELECT * FROM users ORDER BY created_at DESC',
   CREATE:
-    `INSERT INTO users (name, age, weight_kg, height_cm, gender, activity_level, goal_pace, target_weight_kg, target_date, daily_calorie_target)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+    `INSERT INTO users (name, email, password_hash, age, weight_kg, height_cm, gender, activity_level, goal_pace, target_weight_kg, target_date, daily_calorie_target)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
      RETURNING *`,
   // UPDATE is built dynamically — see UserRepository.update()
 };

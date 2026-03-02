@@ -16,6 +16,11 @@ class UserRepository extends BaseRepository {
    * Return all users ordered by creation date descending.
    * @returns {Promise<Object[]>}
    */
+  async findByEmail(email) {
+    const result = await this._query(USER_QUERIES.FIND_BY_EMAIL, [email]);
+    return result.rows[0] || null;
+  }
+
   async findAll() {
     const result = await this._query(USER_QUERIES.FIND_ALL);
     return result.rows;
@@ -36,12 +41,12 @@ class UserRepository extends BaseRepository {
    */
   async create(data) {
     const {
-      name, age, weight_kg, height_cm, gender, activity_level, goal_pace,
-      target_weight_kg, target_date, daily_calorie_target,
+      name, email, password_hash, age, weight_kg, height_cm, gender,
+      activity_level, goal_pace, target_weight_kg, target_date, daily_calorie_target,
     } = data;
     const result = await this._query(
       USER_QUERIES.CREATE,
-      [name, age, weight_kg, height_cm, gender, activity_level, goal_pace, target_weight_kg, target_date, daily_calorie_target],
+      [name, email, password_hash, age, weight_kg, height_cm, gender, activity_level, goal_pace, target_weight_kg, target_date, daily_calorie_target],
     );
     return result.rows[0];
   }

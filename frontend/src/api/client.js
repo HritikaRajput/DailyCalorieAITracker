@@ -7,6 +7,12 @@ const client = axios.create({
   timeout: 60000, // 60s — voice processing can take a moment
 });
 
+client.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 client.interceptors.response.use(
   (res) => res,
   (err) => {
@@ -14,6 +20,14 @@ client.interceptors.response.use(
     return Promise.reject(new Error(message));
   }
 );
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+export const register = (data) =>
+  client.post('/api/v1/auth/register', data).then((r) => r.data);
+
+export const login = (data) =>
+  client.post('/api/v1/auth/login', data).then((r) => r.data);
 
 // ── Users ─────────────────────────────────────────────────────────────────────
 
