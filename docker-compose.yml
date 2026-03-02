@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: calorie_tracker
+      POSTGRES_USER: tracker
+      POSTGRES_PASSWORD: tracker_dev_password
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U tracker -d calorie_tracker']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    environment:
+      DATABASE_URL: postgresql://tracker:tracker_dev_password@postgres:5432/calorie_tracker
+      NODE_ENV: development
+      PORT: 3001
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      CALORIE_EXTRACTOR: openai
+      ALLOWED_ORIGINS: http://localhost:5173,http://localhost:5174
+      LOG_LEVEL: debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Hot-reload src in dev without rebuilding image
+      - ./backend/src:/app/src:ro
+
+volumes:
+  postgres_data:
