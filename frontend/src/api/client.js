@@ -56,6 +56,9 @@ export const recordMeal = (audioBlob, userId, mealType, date) => {
   return client.post('/api/v1/meals/record', form).then((r) => r.data);
 };
 
+export const createMeal = (data) =>
+  client.post('/api/v1/meals', data).then((r) => r.data.meal);
+
 export const updateMeal = (id, data) =>
   client.put(`/api/v1/meals/${id}`, data).then((r) => r.data.meal);
 

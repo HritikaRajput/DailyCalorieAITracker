@@ -25,13 +25,13 @@ services:
     restart: unless-stopped
     ports:
       - '3001:3001'
+    env_file:
+      - ./backend/.env          # loads OPENAI_API_KEY, ANTHROPIC_API_KEY, JWT_SECRET, etc.
     environment:
+      # These override the .env values where Docker-specific values differ
       DATABASE_URL: postgresql://tracker:tracker_dev_password@postgres:5432/calorie_tracker
       NODE_ENV: development
       PORT: 3001
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      JWT_SECRET: ${JWT_SECRET:-local_dev_secret_change_in_production}
       CALORIE_EXTRACTOR: openai
       ALLOWED_ORIGINS: http://localhost:5173,http://localhost:5174
       LOG_LEVEL: debug

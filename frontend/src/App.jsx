@@ -12,6 +12,17 @@ function ProtectedRoute({ user, children }) {
   return children;
 }
 
+function Avatar({ name }) {
+  const initials = name
+    ? name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+    : '?';
+  return (
+    <div style={styles.avatar} title={name}>
+      {initials}
+    </div>
+  );
+}
+
 function AppShell({ user, setUser }) {
   const [showPanel, setShowPanel] = useState(false);
   const navigate = useNavigate();
@@ -28,45 +39,37 @@ function AppShell({ user, setUser }) {
     navigate('/login', { replace: true });
   }
 
-  function handleAuth(authUser) {
-    setUser(authUser);
-  }
-
   return (
     <div style={styles.app}>
       {user && (
         <nav style={styles.nav}>
           <span style={styles.brand}>🔥 CalTrack</span>
 
-          <div style={styles.right}>
-            <div style={styles.links}>
-              <NavLink to="/" end
-                style={({ isActive }) => ({ ...styles.link, ...(isActive ? styles.activeLink : {}) })}>
-                Dashboard
-              </NavLink>
-              <NavLink to="/history"
-                style={({ isActive }) => ({ ...styles.link, ...(isActive ? styles.activeLink : {}) })}>
-                History
-              </NavLink>
-            </div>
+          <div style={styles.navLinks}>
+            <NavLink to="/" end style={({ isActive }) => ({ ...styles.link, ...(isActive ? styles.activeLink : {}) })}>
+              Dashboard
+            </NavLink>
+            <NavLink to="/history" style={({ isActive }) => ({ ...styles.link, ...(isActive ? styles.activeLink : {}) })}>
+              History
+            </NavLink>
+          </div>
 
-            <button style={styles.userBtn} onClick={() => setShowPanel(true)}>
-              👤 {user.name}
+          <div style={styles.navRight}>
+            <button style={styles.avatarBtn} onClick={() => setShowPanel(true)} title="Edit profile">
+              <Avatar name={user.name} />
+              <span style={styles.avatarName}>{user.name.split(' ')[0]}</span>
             </button>
-
-            <button style={styles.logoutBtn} onClick={handleLogout}>
-              Sign Out
+            <button style={styles.signOutBtn} className="btn-hover" onClick={handleLogout}>
+              Sign out
             </button>
           </div>
         </nav>
       )}
 
-      <main style={styles.main}>
+      <main>
         <Routes>
           <Route path="/login" element={
-            user
-              ? <Navigate to="/" replace />
-              : <LoginPage onAuth={handleAuth} />
+            user ? <Navigate to="/" replace /> : <LoginPage onAuth={(u) => setUser(u)} />
           } />
           <Route path="/" element={
             <ProtectedRoute user={user}>
@@ -85,10 +88,7 @@ function AppShell({ user, setUser }) {
         <ProfilePanel
           user={user}
           onClose={() => setShowPanel(false)}
-          onSaved={(updated) => {
-            handleUserUpdate(updated);
-            setShowPanel(false);
-          }}
+          onSaved={(updated) => { handleUserUpdate(updated); setShowPanel(false); }}
         />
       )}
     </div>
@@ -110,36 +110,75 @@ export default function App() {
 }
 
 const styles = {
-  app: { minHeight: '100vh', background: '#f9fafb', fontFamily: 'system-ui, sans-serif' },
+  app: { minHeight: '100vh', background: '#F7F7F7' },
   nav: {
     background: '#fff',
-    borderBottom: '1px solid #e5e7eb',
-    padding: '0 24px',
-    height: 56,
+    borderBottom: '1px solid #EBEBEB',
+    height: 64,
+    padding: '0 32px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     position: 'sticky',
     top: 0,
-    zIndex: 10,
+    zIndex: 100,
+    boxShadow: '0 1px 0 #EBEBEB',
   },
-  brand: { fontWeight: 800, fontSize: 18 },
-  right:  { display: 'flex', alignItems: 'center', gap: 8 },
-  links:  { display: 'flex', gap: 4 },
+  brand: {
+    fontWeight: 800,
+    fontSize: 20,
+    letterSpacing: '-0.5px',
+    color: '#1A1A1A',
+  },
+  navLinks: { display: 'flex', gap: 4 },
   link: {
-    padding: '6px 14px', borderRadius: 8, textDecoration: 'none',
-    color: '#6b7280', fontWeight: 500, fontSize: 14, transition: 'background 0.15s',
+    padding: '8px 16px',
+    borderRadius: 8,
+    textDecoration: 'none',
+    color: '#717171',
+    fontWeight: 500,
+    fontSize: 14,
+    transition: 'all 0.15s',
   },
-  activeLink: { background: '#eff6ff', color: '#3b82f6' },
-  userBtn: {
-    padding: '6px 14px', borderRadius: 20, border: 'none',
-    background: '#f3f4f6', fontWeight: 500, fontSize: 14,
-    cursor: 'pointer', marginLeft: 8,
+  activeLink: {
+    color: '#1A1A1A',
+    fontWeight: 600,
+    background: '#F7F7F7',
   },
-  logoutBtn: {
-    padding: '6px 14px', borderRadius: 20, border: '1px solid #e5e7eb',
-    background: '#fff', fontWeight: 500, fontSize: 14,
-    color: '#6b7280', cursor: 'pointer',
+  navRight: { display: 'flex', alignItems: 'center', gap: 12 },
+  avatarBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    background: 'none',
+    border: '1px solid #EBEBEB',
+    borderRadius: 24,
+    padding: '4px 12px 4px 4px',
+    cursor: 'pointer',
+    transition: 'box-shadow 0.15s',
   },
-  main: { paddingTop: 8 },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: '50%',
+    background: '#1A1A1A',
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 700,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  avatarName: { fontSize: 14, fontWeight: 600, color: '#1A1A1A' },
+  signOutBtn: {
+    background: 'none',
+    border: 'none',
+    fontSize: 14,
+    color: '#717171',
+    cursor: 'pointer',
+    fontWeight: 500,
+    padding: '8px 4px',
+    transition: 'color 0.15s',
+  },
 };

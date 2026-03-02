@@ -3,25 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { login, register } from '../api/client';
 
 export default function LoginPage({ onAuth }) {
-  const [tab, setTab]         = useState('signin');   // 'signin' | 'register'
-  const [name, setName]       = useState('');
-  const [email, setEmail]     = useState('');
-  const [password, setPass]   = useState('');
+  const [tab, setTab]       = useState('signin');
+  const [name, setName]     = useState('');
+  const [email, setEmail]   = useState('');
+  const [password, setPass] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState('');
-  const navigate              = useNavigate();
+  const [error, setError]   = useState('');
+  const navigate            = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      let data;
-      if (tab === 'signin') {
-        data = await login({ email, password });
-      } else {
-        data = await register({ name, email, password });
-      }
+      const data = tab === 'signin'
+        ? await login({ email, password })
+        : await register({ name, email, password });
       localStorage.setItem('auth_token', data.token);
       localStorage.setItem('calorie_tracker_user', JSON.stringify(data.user));
       onAuth(data.user);
@@ -33,31 +30,42 @@ export default function LoginPage({ onAuth }) {
     }
   }
 
+  function switchTab(t) { setTab(t); setError(''); }
+
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        <h1 style={styles.brand}>🔥 CalTrack</h1>
-        <p style={styles.tagline}>Your voice-powered calorie tracker</p>
+        {/* Brand */}
+        <div style={styles.brandRow}>
+          <span style={styles.brandIcon}>🔥</span>
+          <span style={styles.brandName}>CalTrack</span>
+        </div>
+        <h1 style={styles.heading}>
+          {tab === 'signin' ? 'Welcome back' : 'Create your account'}
+        </h1>
+        <p style={styles.subheading}>
+          {tab === 'signin'
+            ? 'Sign in to track your nutrition.'
+            : 'Start tracking calories with your voice.'}
+        </p>
 
+        {/* Tab switcher */}
         <div style={styles.tabs}>
           <button
             style={{ ...styles.tab, ...(tab === 'signin'   ? styles.tabActive : {}) }}
-            onClick={() => { setTab('signin');   setError(''); }}
-          >
-            Sign In
-          </button>
+            onClick={() => switchTab('signin')}
+          >Sign in</button>
           <button
             style={{ ...styles.tab, ...(tab === 'register' ? styles.tabActive : {}) }}
-            onClick={() => { setTab('register'); setError(''); }}
-          >
-            Create Account
-          </button>
+            onClick={() => switchTab('register')}
+          >Create account</button>
         </div>
 
+        {/* Form */}
         <form onSubmit={handleSubmit} style={styles.form}>
           {tab === 'register' && (
-            <label style={styles.label}>
-              Name
+            <div style={styles.field}>
+              <label style={styles.label}>Full name</label>
               <input
                 style={styles.input}
                 type="text"
@@ -67,11 +75,10 @@ export default function LoginPage({ onAuth }) {
                 required
                 autoComplete="name"
               />
-            </label>
+            </div>
           )}
-
-          <label style={styles.label}>
-            Email
+          <div style={styles.field}>
+            <label style={styles.label}>Email</label>
             <input
               style={styles.input}
               type="email"
@@ -81,30 +88,42 @@ export default function LoginPage({ onAuth }) {
               required
               autoComplete="email"
             />
-          </label>
-
-          <label style={styles.label}>
-            Password
+          </div>
+          <div style={styles.field}>
+            <label style={styles.label}>Password</label>
             <input
               style={styles.input}
               type="password"
               value={password}
               onChange={(e) => setPass(e.target.value)}
-              placeholder={tab === 'register' ? 'Min 8 characters' : '••••••••'}
+              placeholder={tab === 'register' ? 'At least 8 characters' : '••••••••'}
               required
               minLength={tab === 'register' ? 8 : undefined}
               autoComplete={tab === 'signin' ? 'current-password' : 'new-password'}
             />
-          </label>
+          </div>
 
-          {error && <p style={styles.error}>{error}</p>}
+          {error && (
+            <div style={styles.errorBox}>
+              <span style={styles.errorIcon}>⚠</span> {error}
+            </div>
+          )}
 
-          <button style={styles.submit} type="submit" disabled={loading}>
-            {loading
-              ? 'Please wait…'
-              : tab === 'signin' ? 'Sign In' : 'Create Account'}
+          <button style={styles.submitBtn} type="submit" disabled={loading} className="btn-hover">
+            {loading ? (
+              <span style={styles.spinner} />
+            ) : (
+              tab === 'signin' ? 'Continue' : 'Create account'
+            )}
           </button>
         </form>
+
+        <p style={styles.switchHint}>
+          {tab === 'signin' ? "Don't have an account? " : 'Already have an account? '}
+          <button style={styles.switchLink} onClick={() => switchTab(tab === 'signin' ? 'register' : 'signin')}>
+            {tab === 'signin' ? 'Sign up' : 'Sign in'}
+          </button>
+        </p>
       </div>
     </div>
   );
@@ -113,75 +132,116 @@ export default function LoginPage({ onAuth }) {
 const styles = {
   page: {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #eff6ff 0%, #f9fafb 100%)',
+    background: '#F7F7F7',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    fontFamily: 'system-ui, sans-serif',
   },
   card: {
     background: '#fff',
-    borderRadius: 16,
-    boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
-    padding: '40px 36px',
+    borderRadius: 20,
+    boxShadow: '0 2px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
+    padding: '40px 40px 32px',
     width: '100%',
-    maxWidth: 400,
+    maxWidth: 420,
+    animation: 'fadeUp 0.3s ease',
   },
-  brand: { margin: 0, fontSize: 28, fontWeight: 800, textAlign: 'center' },
-  tagline: { margin: '4px 0 24px', color: '#6b7280', fontSize: 14, textAlign: 'center' },
+  brandRow: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 },
+  brandIcon: { fontSize: 28 },
+  brandName: { fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px', color: '#1A1A1A' },
+  heading: { margin: '0 0 6px', fontSize: 24, fontWeight: 700, letterSpacing: '-0.5px', color: '#1A1A1A' },
+  subheading: { margin: '0 0 24px', fontSize: 14, color: '#717171', lineHeight: 1.5 },
   tabs: {
     display: 'flex',
-    background: '#f3f4f6',
+    background: '#F7F7F7',
     borderRadius: 10,
     padding: 4,
-    marginBottom: 24,
+    marginBottom: 28,
+    gap: 4,
   },
   tab: {
     flex: 1,
-    padding: '8px 0',
+    padding: '9px 0',
     border: 'none',
     borderRadius: 8,
     background: 'transparent',
     fontWeight: 500,
     fontSize: 14,
-    color: '#6b7280',
+    color: '#717171',
     cursor: 'pointer',
     transition: 'all 0.15s',
   },
   tabActive: {
     background: '#fff',
-    color: '#1f2937',
+    color: '#1A1A1A',
+    fontWeight: 600,
     boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
   },
   form: { display: 'flex', flexDirection: 'column', gap: 16 },
-  label: { display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14, fontWeight: 500, color: '#374151' },
+  field: { display: 'flex', flexDirection: 'column', gap: 6 },
+  label: { fontSize: 13, fontWeight: 600, color: '#1A1A1A' },
   input: {
-    padding: '10px 12px',
-    borderRadius: 8,
-    border: '1px solid #d1d5db',
-    fontSize: 14,
-    outline: 'none',
-    transition: 'border-color 0.15s',
+    padding: '12px 14px',
+    borderRadius: 10,
+    border: '1.5px solid #EBEBEB',
+    fontSize: 15,
+    color: '#1A1A1A',
+    background: '#fff',
+    transition: 'border-color 0.15s, box-shadow 0.15s',
   },
-  error: {
-    margin: 0,
-    padding: '10px 12px',
-    background: '#fef2f2',
-    border: '1px solid #fecaca',
-    borderRadius: 8,
-    color: '#dc2626',
+  errorBox: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '12px 14px',
+    background: '#FFF5F5',
+    border: '1px solid #FECACA',
+    borderRadius: 10,
+    color: '#DC2626',
     fontSize: 13,
+    fontWeight: 500,
   },
-  submit: {
-    padding: '12px',
-    borderRadius: 8,
+  errorIcon: { fontSize: 14, flexShrink: 0 },
+  submitBtn: {
+    padding: '14px',
+    borderRadius: 10,
     border: 'none',
-    background: '#3b82f6',
+    background: '#1A1A1A',
     color: '#fff',
     fontWeight: 600,
     fontSize: 15,
     cursor: 'pointer',
     marginTop: 4,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+    transition: 'opacity 0.15s',
+  },
+  spinner: {
+    width: 18,
+    height: 18,
+    border: '2px solid rgba(255,255,255,0.3)',
+    borderTopColor: '#fff',
+    borderRadius: '50%',
+    display: 'inline-block',
+    animation: 'spin 0.7s linear infinite',
+  },
+  switchHint: {
+    margin: '20px 0 0',
+    textAlign: 'center',
+    fontSize: 13,
+    color: '#717171',
+  },
+  switchLink: {
+    background: 'none',
+    border: 'none',
+    color: '#1A1A1A',
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontSize: 13,
+    padding: 0,
+    textDecoration: 'underline',
   },
 };

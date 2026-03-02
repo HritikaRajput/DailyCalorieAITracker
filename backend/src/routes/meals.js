@@ -73,6 +73,34 @@ function createMealRouter(mealService, mealRepository) {
     }
   });
 
+  // POST /api/v1/meals — direct meal creation (quick-add, no audio)
+  router.post('/', async (req, res, next) => {
+    try {
+      const { userId, mealType, date, foods, total_calories, protein_g, fiber_g, carbs_g, fat_g, transcript } = req.body;
+      if (!userId) return res.status(400).json({ error: 'userId is required' });
+      if (!mealType || !MEAL_TYPES.includes(mealType)) {
+        return res.status(400).json({ error: `mealType must be one of: ${MEAL_TYPES.join(', ')}` });
+      }
+      if (!Array.isArray(foods) || foods.length === 0) {
+        return res.status(400).json({ error: 'foods array is required' });
+      }
+      const mealDate = date || new Date().toISOString().split('T')[0];
+      const meal = await mealRepository.create({
+        userId, date: mealDate, mealType,
+        transcript: transcript || 'Quick add',
+        foods,
+        total_calories: total_calories || foods.reduce((s, f) => s + (f.calories || 0), 0),
+        protein_g: protein_g || 0,
+        fiber_g:   fiber_g   || 0,
+        carbs_g:   carbs_g   || 0,
+        fat_g:     fat_g     || 0,
+      });
+      res.status(201).json({ meal });
+    } catch (err) {
+      next(err);
+    }
+  });
+
   // PUT /api/v1/meals/:id — manual correction
   router.put('/:id', validate(updateMealSchema), async (req, res, next) => {
     try {

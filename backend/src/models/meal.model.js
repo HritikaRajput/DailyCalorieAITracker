@@ -1,7 +1,7 @@
 const { z } = require('zod');
 
 /** @type {string[]} Valid meal type identifiers */
-const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'];
+const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack', 'misc'];
 
 const MealFoodSchema = z.object({
   name: z.string(),

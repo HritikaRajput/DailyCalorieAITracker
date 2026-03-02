@@ -11,51 +11,66 @@ function formatDate(dateStr) {
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
-    <div style={styles.tooltip}>
-      <p style={{ margin: 0, fontWeight: 600 }}>{formatDate(label)}</p>
-      <p style={{ margin: 0, color: '#3b82f6' }}>{payload[0].value} kcal</p>
+    <div style={tooltip}>
+      <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: 13, color: '#1A1A1A' }}>
+        {formatDate(label)}
+      </p>
+      <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#22C55E' }}>
+        {payload[0].value.toLocaleString()} kcal
+      </p>
     </div>
   );
 }
+
+const tooltip = {
+  background: '#fff', border: '1px solid #EBEBEB', borderRadius: 12,
+  padding: '10px 14px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+};
 
 export default function CalorieChart({ data, targetCalories, title = 'Daily Calories' }) {
   if (!data || data.length === 0) {
     return (
       <div style={styles.empty}>
-        <p>No data yet. Start logging meals to see your calorie chart.</p>
+        <p style={styles.emptyText}>No data yet — start logging meals to see your chart.</p>
       </div>
     );
   }
 
   return (
-    <div style={styles.wrapper}>
+    <div style={styles.wrapper} className="card-hover">
       <h3 style={styles.title}>{title}</h3>
       <ResponsiveContainer width="100%" height={240}>
-        <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+        <BarChart data={data} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" vertical={false} />
           <XAxis
             dataKey="date"
             tickFormatter={formatDate}
-            tick={{ fontSize: 12, fill: '#6b7280' }}
+            tick={{ fontSize: 11, fill: '#B0B0B0' }}
+            axisLine={false}
+            tickLine={false}
           />
-          <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} />
-          <Tooltip content={<CustomTooltip />} />
+          <YAxis
+            tick={{ fontSize: 11, fill: '#B0B0B0' }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.03)' }} />
           {targetCalories && (
             <ReferenceLine
               y={targetCalories}
-              stroke="#f59e0b"
-              strokeDasharray="4 4"
-              label={{ value: 'Target', fill: '#f59e0b', fontSize: 12 }}
+              stroke="#F59E0B"
+              strokeDasharray="6 4"
+              label={{ value: 'Target', fill: '#F59E0B', fontSize: 11, fontWeight: 600 }}
             />
           )}
-          <Bar dataKey="total_calories" radius={[4, 4, 0, 0]}>
+          <Bar dataKey="total_calories" radius={[6, 6, 0, 0]} maxBarSize={48}>
             {data.map((entry, i) => (
               <Cell
                 key={i}
                 fill={
                   targetCalories && entry.total_calories > targetCalories
-                    ? '#fca5a5' // over target → red tint
-                    : '#3b82f6'  // normal → blue
+                    ? '#FCA5A5'
+                    : '#22C55E'
                 }
               />
             ))}
@@ -67,14 +82,14 @@ export default function CalorieChart({ data, targetCalories, title = 'Daily Calo
 }
 
 const styles = {
-  wrapper: { background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.1)' },
-  title: { margin: '0 0 16px', fontSize: 16, fontWeight: 700 },
-  empty: { background: '#fff', borderRadius: 12, padding: 40, textAlign: 'center', color: '#9ca3af' },
-  tooltip: {
-    background: '#fff',
-    border: '1px solid #e5e7eb',
-    borderRadius: 8,
-    padding: '8px 12px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+  wrapper: {
+    background: '#fff', borderRadius: 16, padding: '20px 20px 12px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '1px solid #EBEBEB',
   },
+  title: { margin: '0 0 20px', fontSize: 15, fontWeight: 700, color: '#1A1A1A' },
+  empty: {
+    background: '#fff', borderRadius: 16, padding: 48,
+    textAlign: 'center', border: '1px solid #EBEBEB',
+  },
+  emptyText: { margin: 0, color: '#B0B0B0', fontSize: 14 },
 };

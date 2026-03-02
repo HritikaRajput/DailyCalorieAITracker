@@ -47,6 +47,11 @@ ALTER TABLE meals ADD COLUMN IF NOT EXISTS fiber_g   DECIMAL(7,2) NOT NULL DEFAU
 ALTER TABLE meals ADD COLUMN IF NOT EXISTS carbs_g   DECIMAL(7,2) NOT NULL DEFAULT 0;
 ALTER TABLE meals ADD COLUMN IF NOT EXISTS fat_g     DECIMAL(7,2) NOT NULL DEFAULT 0;
 
+-- Expand meal_type constraint to include misc snacking
+ALTER TABLE meals DROP CONSTRAINT IF EXISTS meals_meal_type_check;
+ALTER TABLE meals ADD CONSTRAINT meals_meal_type_check
+  CHECK (meal_type IN ('breakfast','lunch','dinner','snack','misc'));
+
 -- Primary query pattern: get all meals for a user on a specific date
 CREATE INDEX IF NOT EXISTS idx_meals_user_date ON meals(user_id, date);
 -- Secondary: aggregate queries across all users by date (admin/analytics)
