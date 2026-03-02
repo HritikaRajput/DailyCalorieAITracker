@@ -4,6 +4,7 @@ import DailySummary from '../components/DailySummary';
 import CalorieChart from '../components/CalorieChart';
 import MacroChart from '../components/MacroChart';
 import MacroInsight from '../components/MacroInsight';
+import ProfilePanel from '../components/ProfilePanel';
 import { getMeals, getMealsSummary, createUser } from '../api/client';
 import { computeTargets } from '../utils/targets';
 
@@ -16,6 +17,7 @@ export default function Dashboard() {
     return saved ? JSON.parse(saved) : null;
   });
   const [showProfileForm, setShowProfileForm] = useState(!user);
+  const [showProfilePanel, setShowProfilePanel] = useState(false);
   const [meals, setMeals] = useState([]);
   const [summaryData, setSummaryData] = useState([]);
   const [date] = useState(today());
@@ -138,7 +140,9 @@ export default function Dashboard() {
             {new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
         </div>
-        <span style={styles.userBadge}>👤 {user?.name}</span>
+        <button style={styles.userBadge} onClick={() => setShowProfilePanel(true)}>
+          👤 {user?.name}
+        </button>
       </header>
 
       <DailySummary
@@ -179,6 +183,18 @@ export default function Dashboard() {
           <MacroChart data={summaryData} targets={targets} />
         </div>
       </section>
+
+      {showProfilePanel && (
+        <ProfilePanel
+          user={user}
+          onClose={() => setShowProfilePanel(false)}
+          onSaved={(updated) => {
+            localStorage.setItem('calorie_tracker_user', JSON.stringify(updated));
+            setUser(updated);
+            setShowProfilePanel(false);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -188,7 +204,7 @@ const styles = {
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
   h1: { margin: 0, fontSize: 28, fontWeight: 800 },
   sub: { margin: '4px 0 0', color: '#6b7280', fontSize: 14 },
-  userBadge: { background: '#f3f4f6', borderRadius: 20, padding: '6px 14px', fontSize: 14, fontWeight: 500 },
+  userBadge: { background: '#f3f4f6', borderRadius: 20, padding: '6px 14px', fontSize: 14, fontWeight: 500, border: 'none', cursor: 'pointer' },
   sectionTitle: { margin: '0 0 12px', fontSize: 18, fontWeight: 700 },
   mealGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 },
   loading: { color: '#9ca3af', textAlign: 'center' },
