@@ -32,7 +32,7 @@ class MealService {
       fs.renameSync(tempFilePath, renamedPath);
 
       const transcript = await transcribeAudio(renamedPath);
-      const { foods, total_calories, confidence } = await extractCalories(transcript);
+      const { foods, total_calories, total_protein_g, total_fiber_g, total_carbs_g, total_fat_g, confidence } = await extractCalories(transcript);
 
       const mealDate = date || new Date().toISOString().split('T')[0];
       const meal = await this._mealRepository.create({
@@ -42,6 +42,10 @@ class MealService {
         transcript,
         foods,
         total_calories,
+        protein_g: total_protein_g,
+        fiber_g: total_fiber_g,
+        carbs_g: total_carbs_g,
+        fat_g: total_fat_g,
       });
 
       logger.info('Meal recorded', { mealId: meal.id, total_calories, confidence });

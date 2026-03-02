@@ -2,10 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import MealCard from '../components/MealCard';
 import DailySummary from '../components/DailySummary';
 import CalorieChart from '../components/CalorieChart';
-import { getMeals, getMealsSummary, getUsers, createUser } from '../api/client';
+import MacroChart from '../components/MacroChart';
+import MacroInsight from '../components/MacroInsight';
+import { getMeals, getMealsSummary, createUser } from '../api/client';
+import { computeTargets } from '../utils/targets';
 
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'];
-
 const today = () => new Date().toISOString().split('T')[0];
 
 export default function Dashboard() {
@@ -18,7 +20,11 @@ export default function Dashboard() {
   const [summaryData, setSummaryData] = useState([]);
   const [date] = useState(today());
   const [loading, setLoading] = useState(false);
-  const [profileForm, setProfileForm] = useState({ name: '', weight_kg: '', height_cm: '', age: '' });
+  const [profileForm, setProfileForm] = useState({
+    name: '', weight_kg: '', height_cm: '', age: '', gender: '',
+  });
+
+  const targets = user ? computeTargets(user) : {};
 
   const loadMeals = useCallback(async () => {
     if (!user) return;
@@ -45,10 +51,11 @@ export default function Dashboard() {
   async function handleCreateProfile(e) {
     e.preventDefault();
     const newUser = await createUser({
-      name: profileForm.name,
-      weight_kg: profileForm.weight_kg ? parseFloat(profileForm.weight_kg) : undefined,
-      height_cm: profileForm.height_cm ? parseFloat(profileForm.height_cm) : undefined,
-      age: profileForm.age ? parseInt(profileForm.age) : undefined,
+      name:       profileForm.name,
+      weight_kg:  profileForm.weight_kg  ? parseFloat(profileForm.weight_kg)  : undefined,
+      height_cm:  profileForm.height_cm  ? parseFloat(profileForm.height_cm)  : undefined,
+      age:        profileForm.age        ? parseInt(profileForm.age)           : undefined,
+      gender:     profileForm.gender     || undefined,
     });
     localStorage.setItem('calorie_tracker_user', JSON.stringify(newUser));
     setUser(newUser);
@@ -68,7 +75,17 @@ export default function Dashboard() {
     loadSummary();
   }
 
-  const totalCalories = meals.reduce((sum, m) => sum + m.total_calories, 0);
+  // Aggregate today's macros across all meals
+  const totalCalories = meals.reduce((s, m) => s + m.total_calories, 0);
+  const macroTotals = meals.reduce(
+    (s, m) => ({
+      protein_g: +(s.protein_g + parseFloat(m.protein_g || 0)).toFixed(1),
+      fiber_g:   +(s.fiber_g   + parseFloat(m.fiber_g   || 0)).toFixed(1),
+      carbs_g:   +(s.carbs_g   + parseFloat(m.carbs_g   || 0)).toFixed(1),
+      fat_g:     +(s.fat_g     + parseFloat(m.fat_g     || 0)).toFixed(1),
+    }),
+    { protein_g: 0, fiber_g: 0, carbs_g: 0, fat_g: 0 },
+  );
 
   if (showProfileForm) {
     return (
@@ -77,39 +94,34 @@ export default function Dashboard() {
           <h2 style={styles.formTitle}>👋 Welcome! Set up your profile</h2>
           <form onSubmit={handleCreateProfile} style={styles.form}>
             <label style={styles.label}>Name *</label>
-            <input
-              required
-              style={styles.input}
-              placeholder="Your name"
+            <input required style={styles.input} placeholder="Your name"
               value={profileForm.name}
-              onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-            />
+              onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} />
+
+            <label style={styles.label}>Gender</label>
+            <select style={styles.input} value={profileForm.gender}
+              onChange={(e) => setProfileForm({ ...profileForm, gender: e.target.value })}>
+              <option value="">Prefer not to say</option>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+              <option value="other">Other</option>
+            </select>
+
             <label style={styles.label}>Age</label>
-            <input
-              style={styles.input}
-              type="number"
-              placeholder="e.g. 28"
+            <input style={styles.input} type="number" placeholder="e.g. 28"
               value={profileForm.age}
-              onChange={(e) => setProfileForm({ ...profileForm, age: e.target.value })}
-            />
+              onChange={(e) => setProfileForm({ ...profileForm, age: e.target.value })} />
+
             <label style={styles.label}>Current Weight (kg)</label>
-            <input
-              style={styles.input}
-              type="number"
-              step="0.1"
-              placeholder="e.g. 72.5"
+            <input style={styles.input} type="number" step="0.1" placeholder="e.g. 72.5"
               value={profileForm.weight_kg}
-              onChange={(e) => setProfileForm({ ...profileForm, weight_kg: e.target.value })}
-            />
+              onChange={(e) => setProfileForm({ ...profileForm, weight_kg: e.target.value })} />
+
             <label style={styles.label}>Height (cm)</label>
-            <input
-              style={styles.input}
-              type="number"
-              step="0.1"
-              placeholder="e.g. 175"
+            <input style={styles.input} type="number" step="0.1" placeholder="e.g. 175"
               value={profileForm.height_cm}
-              onChange={(e) => setProfileForm({ ...profileForm, height_cm: e.target.value })}
-            />
+              onChange={(e) => setProfileForm({ ...profileForm, height_cm: e.target.value })} />
+
             <button type="submit" style={styles.submitBtn}>Create Profile →</button>
           </form>
         </div>
@@ -131,9 +143,13 @@ export default function Dashboard() {
 
       <DailySummary
         totalCalories={totalCalories}
-        targetCalories={user?.daily_calorie_target}
+        targetCalories={targets.calories}
         date={date}
+        totals={macroTotals}
+        targets={targets}
       />
+
+      <MacroInsight totals={macroTotals} targets={targets} />
 
       <section>
         <h2 style={styles.sectionTitle}>Today's Meals</h2>
@@ -158,10 +174,10 @@ export default function Dashboard() {
 
       <section>
         <h2 style={styles.sectionTitle}>Last 7 Days</h2>
-        <CalorieChart
-          data={summaryData}
-          targetCalories={user?.daily_calorie_target}
-        />
+        <CalorieChart data={summaryData} targetCalories={targets.calories} />
+        <div style={{ marginTop: 16 }}>
+          <MacroChart data={summaryData} targets={targets} />
+        </div>
       </section>
     </div>
   );

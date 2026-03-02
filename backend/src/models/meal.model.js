@@ -6,6 +6,10 @@ const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'];
 const MealFoodSchema = z.object({
   name: z.string(),
   calories: z.number(),
+  protein_g: z.number().default(0),
+  fiber_g: z.number().default(0),
+  carbs_g: z.number().default(0),
+  fat_g: z.number().default(0),
 });
 
 const createMealSchema = z.object({
