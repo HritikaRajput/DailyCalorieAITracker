@@ -14,10 +14,13 @@ CREATE TABLE IF NOT EXISTS users (
   target_weight_kg      DECIMAL(5,2),
   target_date           DATE,
   daily_calorie_target  INTEGER,
+  -- maintain | slow | moderate | aggressive
+  goal_pace             VARCHAR(20) DEFAULT 'maintain',
   created_at            TIMESTAMP DEFAULT NOW(),
   updated_at            TIMESTAMP DEFAULT NOW()
 );
-ALTER TABLE users ADD COLUMN IF NOT EXISTS gender VARCHAR(10);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS gender    VARCHAR(10);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS goal_pace VARCHAR(20) DEFAULT 'maintain';
 
 -- Meals table
 CREATE TABLE IF NOT EXISTS meals (

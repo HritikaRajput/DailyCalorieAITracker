@@ -36,12 +36,12 @@ class UserRepository extends BaseRepository {
    */
   async create(data) {
     const {
-      name, age, weight_kg, height_cm, gender, activity_level,
+      name, age, weight_kg, height_cm, gender, activity_level, goal_pace,
       target_weight_kg, target_date, daily_calorie_target,
     } = data;
     const result = await this._query(
       USER_QUERIES.CREATE,
-      [name, age, weight_kg, height_cm, gender, activity_level, target_weight_kg, target_date, daily_calorie_target],
+      [name, age, weight_kg, height_cm, gender, activity_level, goal_pace, target_weight_kg, target_date, daily_calorie_target],
     );
     return result.rows[0];
   }

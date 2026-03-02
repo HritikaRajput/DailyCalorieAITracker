@@ -3,7 +3,8 @@ const { z } = require('zod');
 /** @type {string[]} Valid activity level identifiers */
 const ACTIVITY_LEVELS = ['sedentary', 'light', 'moderate', 'active', 'very_active'];
 
-const GENDERS = ['male', 'female', 'other'];
+const GENDERS     = ['male', 'female', 'other'];
+const GOAL_PACES  = ['maintain', 'slow', 'moderate', 'aggressive'];
 
 const createUserSchema = z.object({
   name: z.string().min(1).max(100),
@@ -12,6 +13,7 @@ const createUserSchema = z.object({
   height_cm: z.number().min(50).max(300).optional(),
   gender: z.enum(GENDERS).optional(),
   activity_level: z.enum(ACTIVITY_LEVELS).default('moderate'),
+  goal_pace: z.enum(GOAL_PACES).default('maintain'),
   target_weight_kg: z.number().min(1).max(500).optional(),
   target_date: z.string().optional(),
   daily_calorie_target: z.number().int().min(500).max(10000).optional(),
@@ -19,4 +21,4 @@ const createUserSchema = z.object({
 
 const updateUserSchema = createUserSchema.partial();
 
-module.exports = { ACTIVITY_LEVELS, GENDERS, createUserSchema, updateUserSchema };
+module.exports = { ACTIVITY_LEVELS, GENDERS, GOAL_PACES, createUserSchema, updateUserSchema };
